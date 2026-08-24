@@ -1,0 +1,12 @@
+name = "spike_vs_nearby"
+uuid = "4c236ee7-30ed-47fb-86a0-a598652f01cf"
+version = "0.1.0"
+authors = ["Quan-feng Wu <wqf@fytc.ac>"]
+
+[deps]
+FytcPlotRegistries = "619bccf5-858e-452d-bbf1-5ad982edd25a"
+FytcUtilities = "d9e1aad1-ef5d-4be6-a5bf-f5c472fa8b62"
+
+[compat]
+FytcPlotRegistries = "0.1.0"
+FytcUtilities = "0.2.0"
