@@ -1,0 +1,5 @@
+[deps]
+NaturalUnits = "61adfb09-12d1-4e3c-91b1-54bf68ca093d"
+QuadGK = "1fd47b50-473d-5c70-9696-f719f8f3bcdc"
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+spike_vs_nearby = "4c236ee7-30ed-47fb-86a0-a598652f01cf"
