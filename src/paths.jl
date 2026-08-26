@@ -6,17 +6,24 @@
 using FytcPlotRegistries
 
 ##############################################################################
-export code_directory
+export project_directory, src_directory
 
 """
-    code_directory
+    project_directory
 
 Absolute path to the root of the `spike_vs_nearby` Julia project.
 
 The path is resolved from the installed module location, so it does not depend
 on the process working directory.
 """
-const code_directory = pathof(@__MODULE__) |> dirname |> dirname
+const project_directory = pathof(@__MODULE__) |> dirname |> dirname
+
+"""
+    src_directory
+
+Absolute path to the `src` directory of the Julia project `spike_vs_nearby`.
+"""
+const src_directory = joinpath(project_directory, "src")
 ##############################################################################
 
 
@@ -26,9 +33,9 @@ export data_directory, external_data_directory, output_data_directory
 """
     data_directory
 
-Absolute path to the project's `data` directory.
+Absolute path to the `data` directory of the Julia project `spike_vs_nearby`.
 """
-const data_directory = joinpath(code_directory, "data")
+const data_directory = joinpath(project_directory, "data")
 
 """
     external_data_directory
@@ -55,9 +62,9 @@ export plot_directory, plot_registry
 """
     plot_directory
 
-Absolute path to the project's `plots` directory.
+Absolute path to the `plots` directory of the Julia project `spike_vs_nearby`.
 """
-const plot_directory = joinpath(code_directory, "plots")
+const plot_directory = joinpath(project_directory, "plots")
 
 """
     plot_registry
@@ -67,4 +74,3 @@ Plot registry initialized from `plots/PlotRegistry.toml`.
 const plot_registry =
     joinpath(plot_directory, "PlotRegistry.toml") |> PlotRegistry
 ##############################################################################
-
