@@ -6,7 +6,7 @@
 using NaturalUnits
 
 ##############################################################################
-export EU
+export EU, NU
 
 """
     EU
@@ -18,4 +18,14 @@ All quantities represented by `NaturalUnits.EnergyUnit` are converted to a
 dimension.
 """
 const EU = GeV
+
+"""
+    NU
+
+Natural-unit conversion table associated with [`EU`](@ref).
+
+For example, `NU.cm`, `NU.s`, and `NU.cm^2 / NU.s` represent a length, a time,
+and a diffusion coefficient, respectively, in the canonical `GeV` basis.
+"""
+const NU = NaturalUnit(EU)
 ##############################################################################

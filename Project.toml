@@ -3,14 +3,19 @@ uuid = "4c236ee7-30ed-47fb-86a0-a598652f01cf"
 version = "0.1.0"
 authors = ["Quan-feng Wu <wqf@fytc.ac>"]
 
+[workspace]
+projects = ["test"]
+
 [deps]
 FytcPlotRegistries = "619bccf5-858e-452d-bbf1-5ad982edd25a"
 FytcUtilities = "d9e1aad1-ef5d-4be6-a5bf-f5c472fa8b62"
 NaturalUnits = "61adfb09-12d1-4e3c-91b1-54bf68ca093d"
+QuadGK = "1fd47b50-473d-5c70-9696-f719f8f3bcdc"
 SpecialFunctions = "276daf66-3868-5448-9aa4-cd146d93841b"
 
 [compat]
 FytcPlotRegistries = "0.1.0"
 FytcUtilities = "0.2.0"
 NaturalUnits = "0.1.0"
+QuadGK = "2.11.3"
 SpecialFunctions = "2.9.0"

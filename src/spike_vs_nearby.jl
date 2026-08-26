@@ -10,5 +10,6 @@ include("units.jl")
 include("utils.jl")
 
 include("injection_spectra.jl")
+include("transport.jl")
 
 end # module spike_vs_nearby
