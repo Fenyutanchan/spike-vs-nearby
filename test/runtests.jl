@@ -8,7 +8,8 @@ using spike_vs_nearby
 
 include("test_utils.jl")
 
-include("injection_spectra.jl")
-include("transport.jl")
+include("data.jl")
 include("flux.jl")
+include("injection_spectra.jl")
 include("pwn.jl")
+include("transport.jl")

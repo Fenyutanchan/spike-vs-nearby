@@ -1,5 +1,5 @@
 # Copyright (c) 2026 Quan-feng Wu <wqf@fytc.ac>
-# 
+#
 # This software is released under the MIT License.
 # https://opensource.org/licenses/MIT
 
@@ -17,6 +17,7 @@ include("units.jl")
 include("utils.jl")
 
 # layer 3
+include("data.jl")
 include("flux.jl")
 include("injection_spectra.jl")
 include("transport.jl")

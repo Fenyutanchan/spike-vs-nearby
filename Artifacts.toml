@@ -1,0 +1,6 @@
+["ATNF_Pulsar_Catalogue_v2.8.1"]
+git-tree-sha1 = "eb81a333809ca24f76d1449b1719ae1d644ed57d"
+
+    [["ATNF_Pulsar_Catalogue_v2.8.1".download]]
+    sha256 = "fbc3e7e86b5b39fb9c1701f59f64a00d0e3ae6f97e8102544f3d6c49d9066ae8"
+    url = "https://www.atnf.csiro.au/research/pulsar/psrcat/downloads/psrcat_pkg.v2.8.1.tar.gz"
