@@ -5,6 +5,8 @@
 
 using QuadGK: quadgk
 
+using NaturalUnits: EnergyUnit, EUdim, EUval
+
 ##############################################################################
 @inline function _energy_log_ratio(
     E_source::EnergyUnit,

@@ -10,3 +10,5 @@ include("test_utils.jl")
 
 include("injection_spectra.jl")
 include("transport.jl")
+include("flux.jl")
+include("pwn.jl")

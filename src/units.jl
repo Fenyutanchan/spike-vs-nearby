@@ -3,7 +3,7 @@
 # This software is released under the MIT License.
 # https://opensource.org/licenses/MIT
 
-using NaturalUnits
+using NaturalUnits: GeV, NaturalUnit
 
 ##############################################################################
 export EU, NU
