@@ -4,7 +4,7 @@ version = "0.1.0"
 authors = ["Quan-feng Wu <wqf@fytc.ac>"]
 
 [workspace]
-projects = ["test"]
+projects = ["playgrounds", "test"]
 
 [deps]
 Artifacts = "56f22d72-fd6d-98f1-02f0-08ddc0907c33"

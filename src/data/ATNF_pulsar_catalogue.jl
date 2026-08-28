@@ -254,6 +254,73 @@ end
 ################################################################################
 
 ################################################################################
+export pulsar_characteristic_age, pulsar_spin_down_luminosity
+
+const _FIDUCIAL_NEUTRON_STAR_MOMENT_OF_INERTIA =
+    1e45 * NU.g * NU.cm^2
+
+"""
+    pulsar_characteristic_age(pulsar)
+
+Return the characteristic age inferred from the central ATNF values of
+`F0` and `F1`,
+
+```math
+\\tau_\\mathrm{c} = -\\frac{\\nu}{2\\dot{\\nu}}.
+```
+
+This estimate assumes magnetic-dipole braking with braking index ``n=3`` and
+an initial spin period much shorter than the present period. It is therefore
+a model-dependent age proxy rather than a direct age measurement. The result
+has natural-unit mass dimension ``-1``.
+"""
+function pulsar_characteristic_age(pulsar::ATNFPulsar)
+    frequency = parse(Float64, pulsar["F0"].value) / NU.s
+    frequency_derivative =
+        parse(Float64, pulsar["F1"].value) / NU.s^2
+    age = -frequency / (2 * frequency_derivative)
+    return _require_positive_finite(age, "pulsar characteristic age")
+end
+
+"""
+    pulsar_spin_down_luminosity(
+        pulsar;
+        moment_of_inertia=1e45 * NU.g * NU.cm^2,
+    )
+
+Return the present spin-down luminosity inferred from the central ATNF values
+of `F0` and `F1`,
+
+```math
+L_\\mathrm{sd} = -4\\pi^2 I\\nu\\dot{\\nu}.
+```
+
+`moment_of_inertia` is the assumed neutron-star moment of inertia ``I`` and
+must have natural-unit mass dimension ``-1``. Its default value is the
+fiducial ATNF convention ``10^{45}\\,\\mathrm{g\\,cm^2}``. The result has
+mass dimension ``+2``.
+"""
+function pulsar_spin_down_luminosity(
+    pulsar::ATNFPulsar;
+    moment_of_inertia::EnergyUnit=
+        _FIDUCIAL_NEUTRON_STAR_MOMENT_OF_INERTIA,
+)
+    inertia = _canonical_unit(
+        moment_of_inertia,
+        -1,
+        "neutron-star moment of inertia",
+    )
+    _require_positive_finite(inertia, "neutron-star moment of inertia")
+
+    frequency = parse(Float64, pulsar["F0"].value) / NU.s
+    frequency_derivative =
+        parse(Float64, pulsar["F1"].value) / NU.s^2
+    luminosity = -4 * pi^2 * inertia * frequency * frequency_derivative
+    return _require_positive_finite(luminosity, "pulsar spin-down luminosity")
+end
+################################################################################
+
+################################################################################
 export Geminga_ATNF, Monogem_ATNF
 
 const Geminga_ATNF = read_ATNF_pulsar("J0633+1746")

@@ -5,7 +5,7 @@
 
 using QuadGK: quadgk
 
-##############################################################################
+################################################################################
 export PWNSource
 
 """
@@ -37,7 +37,6 @@ struct PWNSource{
     efficiency::T
     distance::EU
     age::EU
-    release_delay::EU
     energy_normalization::EU
 
     function PWNSource{S,T}(
@@ -47,7 +46,6 @@ struct PWNSource{
         efficiency::T,
         distance::EU,
         age::EU,
-        release_delay::EU,
         energy_normalization::EU,
         ::Val{:canonical},
     ) where {
@@ -77,12 +75,6 @@ struct PWNSource{
         _require_positive_finite(distance, "PWN distance")
         _require_dimension(age, -1, "PWN age")
         _require_positive_finite(age, "PWN age")
-        _require_dimension(release_delay, -1, "PWN release delay")
-        _require_nonnegative_finite(release_delay, "PWN release delay")
-        release_delay <= age || throw(DomainError(
-            release_delay,
-            "PWN release delay must not exceed its age",
-        ))
         _require_dimension(
             energy_normalization,
             2,
@@ -99,7 +91,6 @@ struct PWNSource{
             efficiency,
             distance,
             age,
-            release_delay,
             energy_normalization,
         )
     end
@@ -112,8 +103,7 @@ end
         spin_down_timescale,
         efficiency,
         distance,
-        age;
-        release_delay=EU(0, -1),
+        age
     )
 
 Construct a PWN source from its birth spin-down luminosity.
@@ -128,15 +118,12 @@ L_\\mathrm{sd}(t) = L_\\mathrm{sd}^{(0)}
 ```
 
 `efficiency` is the nonnegative effective conversion efficiency ``\\eta_e``.
-`distance`, `age`, and `release_delay` are respectively ``d``,
-``t_\\mathrm{age}``, and ``t_\\mathrm{rel}``. The release delay is measured
-from pulsar birth and must satisfy
-``0 \\leq t_\\mathrm{rel} \\leq t_\\mathrm{age}``.
+`distance` and `age` are respectively ``d`` and ``t_\\mathrm{age}``.
 
 Luminosity has natural-unit mass dimension ``+2``; the spin-down timescale,
-distance, age, and release delay have mass dimension ``-1``. Dimensionful
-inputs are stored in the canonical [`EU`](@ref) basis, and the injection
-energy normalization is computed and cached automatically.
+distance, and age have mass dimension ``-1``. Dimensionful inputs are stored
+in the canonical [`EU`](@ref) basis, and the injection energy normalization is
+computed and cached automatically.
 """
 function PWNSource(
     spectrum::S,
@@ -144,8 +131,7 @@ function PWNSource(
     spin_down_timescale::EnergyUnit,
     efficiency::Real,
     distance::EnergyUnit,
-    age::EnergyUnit;
-    release_delay::EnergyUnit=_zero_unit_like(age, -1),
+    age::EnergyUnit
 ) where {S<:AbstractInjectionSpectrum}
     luminosity = _canonical_unit(
         initial_luminosity,
@@ -160,7 +146,6 @@ function PWNSource(
     eta = float(efficiency)
     source_distance = _canonical_unit(distance, -1, "PWN distance")
     source_age = _canonical_unit(age, -1, "PWN age")
-    delay = _canonical_unit(release_delay, -1, "PWN release delay")
     normalization = injection_energy_integral(spectrum)
 
     L0, t_sd = promote(EUval(luminosity), EUval(timescale))
@@ -172,7 +157,6 @@ function PWNSource(
         eta,
         source_distance,
         source_age,
-        delay,
         normalization,
         Val(:canonical),
     )
@@ -186,7 +170,6 @@ end
         age;
         present_luminosity,
         spin_down_timescale,
-        release_delay=EU(0, -1),
     )
 
 Construct a PWN source from its measured present-day spin-down luminosity.
@@ -202,14 +185,12 @@ L_\\mathrm{sd}^{(0)} = L_\\mathrm{sd}(t_\\mathrm{age})
 
 `spectrum` is the injection shape ``\\mathcal{S}_\\mathrm{PWN}(E)``,
 `efficiency` is ``\\eta_e``, `distance` is ``d``, `age` is
-``t_\\mathrm{age}``, and `release_delay` is ``t_\\mathrm{rel}``. The
-efficiency must be nonnegative, while the release delay must satisfy
-``0 \\leq t_\\mathrm{rel} \\leq t_\\mathrm{age}``.
+``t_\\mathrm{age}``, and the efficiency must be nonnegative.
 
 Luminosity has natural-unit mass dimension ``+2``; the spin-down timescale,
-distance, age, and release delay have mass dimension ``-1``. Dimensionful
-inputs are stored in the canonical [`EU`](@ref) basis, and the injection
-energy normalization is computed and cached automatically.
+distance, and age have mass dimension ``-1``. Dimensionful inputs are stored
+in the canonical [`EU`](@ref) basis, and the injection energy normalization is
+computed and cached automatically.
 """
 function PWNSource(
     spectrum::S,
@@ -218,7 +199,6 @@ function PWNSource(
     age::EnergyUnit;
     present_luminosity::EnergyUnit,
     spin_down_timescale::EnergyUnit,
-    release_delay::EnergyUnit=_zero_unit_like(age, -1),
 ) where {S<:AbstractInjectionSpectrum}
     luminosity = _canonical_unit(
         present_luminosity,
@@ -242,13 +222,12 @@ function PWNSource(
         timescale,
         efficiency,
         distance,
-        source_age;
-        release_delay=release_delay,
+        source_age
     )
 end
-##############################################################################
+################################################################################
 
-##############################################################################
+################################################################################
 export pwn_spin_down_luminosity
 
 """
@@ -285,7 +264,7 @@ q_e(E,t)
 ```
 
 In natural units this rate has mass dimension zero and is therefore returned
-as a `Real`. It is zero before `source.release_delay` and after `source.age`.
+as a `Real`. It is zero after `source.age`.
 """
 function pwn_injection_rate(
     source::PWNSource,
@@ -299,7 +278,6 @@ function pwn_injection_rate(
     numeric_zero = zero(
         source.efficiency * EUval(source.energy_normalization),
     )
-    time < source.release_delay && return numeric_zero
     time > source.age && return numeric_zero
 
     normalization = source.efficiency *
@@ -307,9 +285,9 @@ function pwn_injection_rate(
                     source.energy_normalization
     return normalization * injection_shape(source.spectrum, energy)
 end
-##############################################################################
+################################################################################
 
-##############################################################################
+################################################################################
 export pwn_number_density
 
 """
@@ -326,10 +304,9 @@ n_\\mathrm{PWN}(E,d)
   q_e\\!\\left(E_\\mathrm{s},t_\\mathrm{age}-\\tau\\right).
 ```
 
-The finite source age and optional release delay determine
-``E_\\mathrm{s,max}``. The result is an `EnergyUnit` with natural-unit mass
-dimension ``+2``, corresponding to number per energy per volume. Keyword
-arguments are forwarded to `quadgk`.
+The finite source age determines ``E_\\mathrm{s,max}``. The result is an
+`EnergyUnit` with natural-unit mass dimension ``+2``, corresponding to
+number per energy per volume. Keyword arguments are forwarded to `quadgk`.
 """
 function pwn_number_density(
     source::PWNSource,
@@ -342,10 +319,8 @@ function pwn_number_density(
 }
     observed = _canonical_unit(energy, 1, "observed energy")
     _require_positive_finite(observed, "observed energy")
-    active_age = source.age - source.release_delay
-    iszero(active_age) && return _zero_unit_like(observed, 2)
 
-    source_maximum = source_energy_ceiling(transport, observed, active_age)
+    source_maximum = source_energy_ceiling(transport, observed, source.age)
     spectrum_minimum = minimum_injection_energy(source.spectrum)
     source_minimum = observed >= spectrum_minimum ? observed : spectrum_minimum
     source_maximum < source_minimum && return _zero_unit_like(observed, 2)
@@ -373,5 +348,4 @@ function pwn_number_density(
     density = energy_integral / energy_loss_rate(transport, observed)
     return _require_nonnegative_finite(density, "PWN number density")
 end
-
-##############################################################################
+################################################################################

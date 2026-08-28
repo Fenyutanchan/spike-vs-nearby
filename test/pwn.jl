@@ -79,27 +79,6 @@ using QuadGK: quadgk
             EU(10.0),
             source_age + EU(1.0, -1),
         ) == 0
-
-        release_delay = EU(2.0, -1)
-        delayed_source = PWNSource(
-            spectrum,
-            birth_luminosity,
-            spin_down_timescale,
-            efficiency,
-            distance,
-            source_age;
-            release_delay=release_delay,
-        )
-        @test pwn_injection_rate(
-            delayed_source,
-            EU(10.0),
-            release_delay / 2,
-        ) == 0
-        @test pwn_injection_rate(
-            delayed_source,
-            EU(10.0),
-            release_delay,
-        ) > 0
     end
 
     @testset "propagated number density" begin
@@ -136,20 +115,5 @@ using QuadGK: quadgk
         expected_density = EU(direct_integral, 4) /
                            energy_loss_rate(transport, observed)
         @test unit_isapprox(density, expected_density; rtol=1e-10)
-
-        inactive_source = PWNSource(
-            spectrum,
-            birth_luminosity,
-            spin_down_timescale,
-            efficiency,
-            distance,
-            source_age;
-            release_delay=source_age,
-        )
-        @test iszero(pwn_number_density(
-            inactive_source,
-            transport,
-            observed,
-        ))
     end
 end

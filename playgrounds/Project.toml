@@ -1,0 +1,6 @@
+[deps]
+CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
+FytcUtilities = "d9e1aad1-ef5d-4be6-a5bf-f5c472fa8b62"
+LaTeXStrings = "b964fa9f-0449-5b57-a5c2-d3ea65f4040f"
+NaturalUnits = "61adfb09-12d1-4e3c-91b1-54bf68ca093d"
+spike_vs_nearby = "4c236ee7-30ed-47fb-86a0-a598652f01cf"

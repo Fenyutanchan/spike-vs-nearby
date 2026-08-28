@@ -14,10 +14,16 @@
     @test Geminga_ATNF["DIST_A"].unit == "kpc"
     @test Geminga_ATNF["DIST_A"].reference == "wan11"
 
-    frequency = parse(Float64, Geminga_ATNF["F0"].value)
-    frequency_derivative = parse(Float64, Geminga_ATNF["F1"].value)
-    characteristic_age = -frequency / (2 * frequency_derivative)
-    @test characteristic_age / (365.25 * 86400) ≈ 342_000 rtol = 2e-3
+    @test unit_isapprox(
+        pulsar_characteristic_age(Geminga_ATNF),
+        342 * kyr;
+        rtol=2e-3,
+    )
+    @test unit_isapprox(
+        pulsar_spin_down_luminosity(Geminga_ATNF),
+        3.25e34 * erg / NU.s;
+        rtol=2e-3,
+    )
 
     pulsar = read_ATNF_pulsar("B0011+47")
     @test pulsar.name == "J0014+4746"

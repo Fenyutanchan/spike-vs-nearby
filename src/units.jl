@@ -29,3 +29,14 @@ and a diffusion coefficient, respectively, in the canonical `GeV` basis.
 """
 const NU = NaturalUnit(EU)
 ##############################################################################
+
+##############################################################################
+export erg, pc, yr
+const erg = 1e-7 * NU.J
+const pc = 3.08567758149e16 * NU.m
+const yr = 31556925.1 * NU.s
+
+export kpc, kyr
+const kpc = 1e3 * pc
+const kyr = 1e3 * yr
+##############################################################################
