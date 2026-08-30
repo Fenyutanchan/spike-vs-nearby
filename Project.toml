@@ -8,6 +8,7 @@ projects = ["playgrounds", "test"]
 
 [deps]
 Artifacts = "56f22d72-fd6d-98f1-02f0-08ddc0907c33"
+DelimitedFiles = "8bb1440f-4735-579b-a4ab-409b98df4dab"
 FytcPlotRegistries = "619bccf5-858e-452d-bbf1-5ad982edd25a"
 FytcUtilities = "d9e1aad1-ef5d-4be6-a5bf-f5c472fa8b62"
 NaturalUnits = "61adfb09-12d1-4e3c-91b1-54bf68ca093d"
@@ -16,6 +17,7 @@ SpecialFunctions = "276daf66-3868-5448-9aa4-cd146d93841b"
 
 [compat]
 Artifacts = "1.11.0"
+DelimitedFiles = "1.9.1"
 FytcPlotRegistries = "0.1.0"
 FytcUtilities = "0.2.0"
 NaturalUnits = "0.1.0"

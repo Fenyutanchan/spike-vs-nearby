@@ -4,3 +4,7 @@
 # https://opensource.org/licenses/MIT
 
 include("data/ATNF_pulsar_catalogue.jl")
+include("data/DifferentialFluxMeasurement.jl")
+
+include("data/AMS-02.jl")
+include("data/DAMPE.jl")
