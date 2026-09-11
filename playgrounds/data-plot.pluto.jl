@@ -10,7 +10,7 @@ import Pkg; Pkg.activate(@__DIR__)
 # ╔═╡ ad46f1b1-b5bc-4d0a-bb89-131400d835c2
 begin
     using CairoMakie, LaTeXStrings
-    using NaturalUnits
+    using NaturalUnits, FytcPlotRegistries
     using spike_vs_nearby
 end
 
@@ -20,6 +20,9 @@ md"# Preliminaries"
 
 # ╔═╡ 1357562e-f43c-4114-8491-5f9daba19ef8
 set_theme!(theme_latexfonts())
+
+# ╔═╡ 0e86c003-2006-4620-a332-d344745e8eef
+script_filename = replace(@__FILE__, r"#==#.*$" => "")
 
 # ╔═╡ 2b6f1cbf-535c-4863-911e-78acdbeaec2d
 function flux_value(flux::EnergyUnit)
@@ -89,7 +92,8 @@ figure = let
         energy_maxima_GeV = map(EUval(GeV)∘(m->m.energy_max), channel_data)
         flux_vals = map(flux_value∘(m->m.flux), channel_data)
         flux_syserr_vals = map(flux_value∘(m->m.systematic_error), channel_data)
-        flux_staterr_vals = map(flux_value∘(m->m.statistical_error), channel_data)
+        flux_staterr_vals =
+            map(flux_value∘(m->m.statistical_error), channel_data)
         flux_allerr_vals = sqrt.(flux_syserr_vals.^2 + flux_staterr_vals.^2)
         weighted_flux_vals = energies_GeV.^3 .* flux_vals
         weighted_flux_allerr_vals = energies_GeV.^3 .* flux_allerr_vals
@@ -112,6 +116,12 @@ figure = let
     end
     axislegend(axis; position=:rb)
 
+    plot_file = joinpath(plot_directory, "AMS02-DAMPE-data.svg")
+    save(plot_file, figure)
+    plot_register!(plot_registry, plot_file, script_filename;
+        description=
+            "AMS-02 electron, positron and summed fluxes with \
+                DAMPE total flux, shown as E^3 J(E).")
 
     figure
 end
@@ -121,6 +131,7 @@ end
 # ╠═23377bb1-3b92-4509-87fa-d9d554ef17e3
 # ╠═ad46f1b1-b5bc-4d0a-bb89-131400d835c2
 # ╠═1357562e-f43c-4114-8491-5f9daba19ef8
+# ╠═0e86c003-2006-4620-a332-d344745e8eef
 # ╠═2b6f1cbf-535c-4863-911e-78acdbeaec2d
 # ╟─2b391ec3-5ef0-486c-9473-68100ce6a776
 # ╠═abc5bd2b-f5d4-4403-9297-8138aa94151b

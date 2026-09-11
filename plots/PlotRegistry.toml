@@ -1,0 +1,4 @@
+["AMS02-DAMPE-data.svg"]
+description = "AMS-02 electron, positron and summed fluxes with DAMPE total flux, shown as E^3 J(E)."
+file = "AMS02-DAMPE-data.svg"
+script = "../playgrounds/data-plot.pluto.jl"
