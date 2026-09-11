@@ -34,16 +34,7 @@ end
     electrons = read_AMS02_electron_flux()
     positrons = read_AMS02_positron_flux()
     flux_unit = inv(one(EU) * NU.m^2 * NU.s)
-    combined = combine_AMS02_electron_positron_flux(
-        electrons,
-        positrons;
-        systematic_correlation=0,
-    )
-    fully_correlated = combine_AMS02_electron_positron_flux(
-        electrons,
-        positrons;
-        systematic_correlation=1,
-    )
+    combined = combine_AMS02_electron_positron_flux()
 
     @test length(electrons) == 75
     @test length(positrons) == length(combined) == 74
@@ -59,10 +50,6 @@ end
     @test unit_isapprox(
         combined[1].systematic_error,
         hypot(0.078e1, 0.141e0) * flux_unit,
-    )
-    @test unit_isapprox(
-        fully_correlated[1].systematic_error,
-        (0.078e1 + 0.141e0) * flux_unit,
     )
     @test unit_isapprox(combined[end].energy_max, EU(1000))
     @test unit_isapprox(

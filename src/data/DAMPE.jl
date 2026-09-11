@@ -28,19 +28,20 @@ const _DAMPE_ELECTRON_POSITRON_HEADER = [
 export read_DAMPE_electron_positron_flux
 
 """
-    read_DAMPE_electron_positron_flux([path])
+    read_DAMPE_electron_positron_flux()
 
 Read the DAMPE combined ``e^-+e^+`` differential-flux table.
 
-The default input is the local transcription `dampe_e±.csv` of Table 1 in the
+The input is the local transcription `dampe_e±.csv` of Table 1 in the
 2017 DAMPE CRE publication. The returned vector contains all 38 published
 bins, including separate statistical and systematic flux uncertainties, with
 natural units attached.
 """
-function read_DAMPE_electron_positron_flux(
-    path::AbstractString=_DAMPE_ELECTRON_POSITRON_FLUX_FILE,
-)
-    data = _read_numeric_csv(path, _DAMPE_ELECTRON_POSITRON_HEADER)
+function read_DAMPE_electron_positron_flux()
+    data = _read_numeric_csv(
+        _DAMPE_ELECTRON_POSITRON_FLUX_FILE,
+        _DAMPE_ELECTRON_POSITRON_HEADER,
+    )
     return [
         _differential_flux_measurement(row[1:4]..., row[10:12]...)
             for row in eachrow(data)

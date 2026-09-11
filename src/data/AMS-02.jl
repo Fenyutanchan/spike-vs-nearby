@@ -43,19 +43,17 @@ const _AMS02_POSITRON_HEADER = [
 export read_AMS02_electron_flux, read_AMS02_positron_flux
 
 """
-    read_AMS02_electron_flux([path])
+    read_AMS02_electron_flux()
 
 Read the AMS-02 electron differential-flux table.
 
-The default input is the collaboration-provided `ams02_e-.csv` stored in
+The input is the collaboration-provided `ams02_e-.csv` stored in
 `data/ext`. The returned vector contains the published representative energy,
 flux, and separate statistical and total systematic uncertainties with
 natural units attached.
 """
-function read_AMS02_electron_flux(
-    path::AbstractString=_AMS02_ELECTRON_FLUX_FILE,
-)
-    data = _read_numeric_csv(path, _AMS02_ELECTRON_HEADER)
+function read_AMS02_electron_flux()
+    data = _read_numeric_csv(_AMS02_ELECTRON_FLUX_FILE, _AMS02_ELECTRON_HEADER)
     return [
         _differential_flux_measurement(row[1:4]..., row[7:9]...)
             for row in eachrow(data)
@@ -63,19 +61,17 @@ function read_AMS02_electron_flux(
 end
 
 """
-    read_AMS02_positron_flux([path])
+    read_AMS02_positron_flux()
 
 Read the AMS-02 positron differential-flux table.
 
-The default input is the collaboration-provided `ams02_e+.csv` stored in
+The input is the collaboration-provided `ams02_e+.csv` stored in
 `data/ext`. The returned vector retains the published statistical uncertainty
 and the collaboration's total systematic uncertainty; its individual
 systematic components are not recombined by this lightweight interface.
 """
-function read_AMS02_positron_flux(
-    path::AbstractString=_AMS02_POSITRON_FLUX_FILE,
-)
-    data = _read_numeric_csv(path, _AMS02_POSITRON_HEADER)
+function read_AMS02_positron_flux()
+    data = _read_numeric_csv(_AMS02_POSITRON_FLUX_FILE, _AMS02_POSITRON_HEADER)
     return [
         _differential_flux_measurement(row[1:4]..., row[7], row[8], row[13])
             for row in eachrow(data)
@@ -88,40 +84,20 @@ end
 export combine_AMS02_electron_positron_flux
 
 """
-    combine_AMS02_electron_positron_flux(
-        electrons,
-        positrons;
-        systematic_correlation,
-    )
+    combine_AMS02_electron_positron_flux()
 
-Combine matching AMS-02 electron and positron bins into the measured
-``e^-+e^+`` differential flux.
+Read the fixed AMS-02 electron and positron tables and combine matching bins
+into the measured ``e^-+e^+`` differential flux.
 
-Statistical uncertainties are combined as independent. The required keyword
-`systematic_correlation` is the assumed correlation coefficient between the
-published total electron and positron systematic uncertainties, so that
-
-```math
-\\sigma_{\\mathrm{sys}}^2 = \\sigma_-^2 + \\sigma_+^2 +
-    2\\rho_{\\mathrm{sys}}\\sigma_-\\sigma_+.
-```
+Statistical and total systematic uncertainties are each combined in quadrature.
+The electron and positron errors are assumed to be uncorrelated in each bin.
 
 The AMS-02 inputs share 74 bins through ``1\\,\\mathrm{TeV}``; the final
 electron-only bin is deliberately excluded from the combined result.
 """
-function combine_AMS02_electron_positron_flux(
-    electrons::AbstractVector{<:DifferentialFluxMeasurement},
-    positrons::AbstractVector{<:DifferentialFluxMeasurement};
-    systematic_correlation::Real,
-)
-    correlation = _require_finite(
-        systematic_correlation,
-        "systematic-error correlation",
-    )
-    abs(correlation) <= 1 || throw(DomainError(
-        correlation,
-        "systematic-error correlation must lie between -1 and 1",
-    ))
+function combine_AMS02_electron_positron_flux()
+    electrons = read_AMS02_electron_flux()
+    positrons = read_AMS02_positron_flux()
 
     number_of_common_bins = min(length(electrons), length(positrons))
     combined = Vector{DifferentialFluxMeasurement}(
@@ -129,7 +105,7 @@ function combine_AMS02_electron_positron_flux(
         number_of_common_bins,
     )
 
-    for index in eachindex(combined)
+    for index ∈ eachindex(combined)
         electron = electrons[index]
         positron = positrons[index]
         _matching_AMS02_energy_bin(electron, positron)
@@ -140,16 +116,8 @@ function combine_AMS02_electron_positron_flux(
             electron.energy,
             electron.energy_error,
             electron.flux + positron.flux,
-            _combined_flux_uncertainty(
-                electron.statistical_error,
-                positron.statistical_error,
-                0,
-            ),
-            _combined_flux_uncertainty(
-                electron.systematic_error,
-                positron.systematic_error,
-                correlation,
-            ),
+            sqrt(electron.statistical_error^2 + positron.statistical_error^2),
+            sqrt(electron.systematic_error^2 + positron.systematic_error^2),
         )
     end
 
@@ -170,15 +138,4 @@ function _matching_AMS02_energy_bin(
     ) |> throw
 end
 
-function _combined_flux_uncertainty(
-    left::EnergyUnit,
-    right::EnergyUnit,
-    correlation::Real,
-)
-    left_value = EUval(EU, left)
-    right_value = EUval(EU, right)
-    variance = left_value^2 + right_value^2 +
-               2 * correlation * left_value * right_value
-    return EU(sqrt(max(variance, zero(variance))), 2)
-end
 ################################################################################
