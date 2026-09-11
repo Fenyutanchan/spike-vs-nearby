@@ -10,8 +10,8 @@ module spike_vs_nearby
 # included in alphabetical order.
 
 # layer 1
+include("constants.jl")
 include("paths.jl")
-include("units.jl")
 
 # layer 2
 include("utils.jl")
