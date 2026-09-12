@@ -24,14 +24,6 @@ set_theme!(theme_latexfonts())
 # ╔═╡ 0e86c003-2006-4620-a332-d344745e8eef
 script_filename = replace(@__FILE__, r"#==#.*$" => "")
 
-# ╔═╡ 2b6f1cbf-535c-4863-911e-78acdbeaec2d
-function flux_value(flux::EnergyUnit)
-    flux_unit = inv(GeV(1.0) * NU.m^2 * NU.s) # GeV⁻¹ m⁻² s⁻¹ sr⁻¹
-    flux_value = flux / flux_unit
-    @check_EU_dimension flux_value 0
-    return flux_value
-end
-
 # ╔═╡ 2b391ec3-5ef0-486c-9473-68100ce6a776
 #VSCODE-MARKDOWN
 md"# Data"
@@ -132,7 +124,6 @@ end
 # ╠═ad46f1b1-b5bc-4d0a-bb89-131400d835c2
 # ╠═1357562e-f43c-4114-8491-5f9daba19ef8
 # ╠═0e86c003-2006-4620-a332-d344745e8eef
-# ╠═2b6f1cbf-535c-4863-911e-78acdbeaec2d
 # ╟─2b391ec3-5ef0-486c-9473-68100ce6a776
 # ╠═abc5bd2b-f5d4-4403-9297-8138aa94151b
 # ╟─b57a8e4b-ccfa-4038-a71a-d964f9efdd11

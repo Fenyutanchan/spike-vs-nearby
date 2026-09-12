@@ -74,7 +74,7 @@ function _require_nonnegative_finite(value::EnergyUnit, name::AbstractString)
 end
 
 function _require_dimension(
-    value::EnergyUnit,
+    value::Union{Number, EnergyUnit},
     expected_dimension::Real,
     name::AbstractString,
 )

@@ -3,7 +3,24 @@
 # This software is released under the MIT License.
 # https://opensource.org/licenses/MIT
 
-##############################################################################
+################################################################################
+export flux_value
+
+"""
+    flux_value(flux::EnergyUnit)
+
+Return the numerical value of `flux` in GeV⁻¹ m⁻² s⁻¹ sr⁻¹.
+The ratio to [`differential_flux_unit`](@ref) must be dimensionless.
+Generic numeric values are supported, including automatic derivatives.
+"""
+function flux_value(flux::EnergyUnit)
+    ratio = flux / differential_flux_unit
+    _require_dimension(ratio, 0, "flux in experimental units")
+    return EUval(ratio)
+end
+################################################################################
+
+################################################################################
 export isotropic_differential_flux
 
 """
@@ -45,4 +62,4 @@ function isotropic_differential_flux(
     four_pi = oftype(density_value, 4) * pi
     return EU(speed_fraction * density_value / four_pi, 2)
 end
-##############################################################################
+################################################################################

@@ -90,9 +90,6 @@ struct DifferentialFluxMeasurement
     end
 end
 
-const _EXPERIMENTAL_DIFFERENTIAL_FLUX_UNIT =
-    inv(one(EU) * NU.m^2 * NU.s)
-
 function _read_numeric_csv(
     path::AbstractString,
     expected_header::AbstractVector{<:AbstractString},
@@ -118,9 +115,9 @@ function _differential_flux_measurement(
         EU(energy_max),
         EU(energy),
         EU(energy_error),
-        flux * _EXPERIMENTAL_DIFFERENTIAL_FLUX_UNIT,
-        statistical_error * _EXPERIMENTAL_DIFFERENTIAL_FLUX_UNIT,
-        systematic_error * _EXPERIMENTAL_DIFFERENTIAL_FLUX_UNIT,
+        flux * differential_flux_unit,
+        statistical_error * differential_flux_unit,
+        systematic_error * differential_flux_unit,
     )
 end
 ################################################################################

@@ -6,8 +6,11 @@
 using Test
 using spike_vs_nearby
 
+# Unit-aware comparisons shared by the physical tests below.
 include("test_utils.jl")
 
+# Check physical formulas, normalization, units and observable predictions.
+include("background.jl")
 include("data.jl")
 include("flux.jl")
 include("injection_spectra.jl")

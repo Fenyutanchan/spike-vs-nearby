@@ -50,9 +50,6 @@ reproducible one-zone benchmarks, not fits of the observed slow-diffusion
 halos.
 """
 
-# ╔═╡ eaa2e08d-d844-4675-9ea0-db860ed88ec0
-differential_flux_unit = inv(one(GeV) * NU.m^2 * NU.s) # GeV⁻¹ m⁻² s⁻¹ sr⁻¹
-
 # ╔═╡ c99a243e-1a37-40ab-bcef-d10ae263e0a0
 pwn_observations = let
     (
@@ -192,7 +189,7 @@ pwn_results = let
             )
         end
         fluxes = isotropic_differential_flux.(densities)
-        flux_values = [flux / differential_flux_unit for flux in fluxes]
+        flux_values = flux_value.(fluxes)
         weighted_flux_values = pwn_energy_grid.values_GeV .^ 3 .* flux_values
 
         (
@@ -344,8 +341,7 @@ pwn_checks = let
             (
                 energy_GeV=energy_GeV,
                 source_energy_ceiling_GeV=source_maximum / EU(),
-                E3_flux=energy_GeV^3 *
-                        flux_fine / differential_flux_unit,
+                E3_flux=energy_GeV^3 * flux_value(flux_fine),
                 relative_integral_change=
                     abs(density_coarse / density_fine - 1),
             )
@@ -384,7 +380,6 @@ end
 # ╠═d95f3659-a459-4e62-a326-15b872280521
 # ╠═842fb369-a171-4f97-a7b5-4d1cf1fc5d4d
 # ╟─282b1987-db36-49e6-95d3-f883c4aa67cf
-# ╠═eaa2e08d-d844-4675-9ea0-db860ed88ec0
 # ╠═c99a243e-1a37-40ab-bcef-d10ae263e0a0
 # ╠═82e7cb91-a75b-4f5c-a71a-b8dd8285e4d6
 # ╠═f002b049-9ce8-47b9-8355-682217363698

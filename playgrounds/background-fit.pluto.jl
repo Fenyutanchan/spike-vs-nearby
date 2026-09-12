@@ -24,7 +24,9 @@ The strategies are `:AMS` (AMS electrons and positrons) and `:AMS_DAMPE`
 (AMS positrons and the DAMPE total flux).
 Each charge has its own broken power law. Solar modulation is neglected in the
 current project calculations. Its impact will be estimated separately later.
-All definitions remain in this notebook. The final cells display the fit,
+The background spectrum and flux-unit conversion come from `spike_vs_nearby`.
+Fit settings, optimization, uncertainty calculations and plotting remain here.
+The final cells display the fit,
 parameter table, covariance, and spectra with standardized residuals.
 """
 
@@ -34,53 +36,33 @@ md"""
 
 The empirical spectra are compared directly with the measured total-energy
 fluxes. DAMPE measures the sum of the electron and positron contributions.
+`background_flux`, `differential_flux_unit`, and `flux_value` are provided by
+`spike_vs_nearby`. The normalization reference is configured below and passed
+to every model evaluation.
+`background_channel_flux` assembles the single-charge spectra into the
+observed channels within this notebook.
 """
 
 # ╔═╡ 41d8f99a-f021-5112-9158-4036bc61660a
 begin
     const background_reference_energy = GeV(1.0)
-    const differential_flux_unit = inv(GeV(1.0) * NU.m^2 * NU.s)
     const background_fit_strategies = (AMS=(:electron, :positron),
         AMS_DAMPE=(:positron, :electron_positron))
     const background_channels = (:electron, :positron, :electron_positron)
 end
 
-# ╔═╡ 3c6ab0db-9a1c-558d-8338-c1eeb71b1d0b
-function flux_value(flux)
-    ratio = flux / differential_flux_unit
-    @check_EU_dimension ratio 0
-    return EUval(ratio)
-end
-
-# ╔═╡ b5ce58d3-1cd3-53dd-9a48-937949dea816
-begin
-    function background_flux(energy::EnergyUnit, param;
-                             reference=background_reference_energy)
-        @check_EU_dimension energy 1
-        @check_EU_dimension reference 1
-        @check_EU_dimension param.Ebr 1
-        @check_EU_dimension param.C 2
-        @check_EU_dimension param.γ 0
-        @check_EU_dimension param.Δγ 0
-        isfinite(EUval(energy)) && energy > electron_mass ||
-            throw(DomainError(energy, "Total energy must exceed the rest energy"))
-        param.C > zero(param.C) && param.Ebr > electron_mass && param.Δγ > 0 ||
-            throw(ArgumentError("Invalid background parameters"))
-        reference > zero(reference) || throw(DomainError(reference))
-        # Stable log(1 + exp(x)), including AD through the spectral break.
-        x = param.Δγ * log(EUval(energy / param.Ebr))
-        softplus = x > 0 ? x + log1p(exp(-x)) : log1p(exp(x))
-        return param.C * exp(-param.γ * log(EUval(energy / reference)) - softplus)
-    end
-
-    function background_flux(energy::EnergyUnit, parameters, channel)
-        channel == :electron && return background_flux(energy, parameters.electron)
-        channel == :positron && return background_flux(energy, parameters.positron)
-        channel == :electron_positron &&
-            return background_flux(energy, parameters.electron) +
-                   background_flux(energy, parameters.positron)
-        throw(ArgumentError("Unknown flux channel $channel"))
-    end
+# ╔═╡ 3e1bc7d7-2d87-4a18-8d54-a1abdd58b57e
+"""Assemble the electron, positron or total flux for an observed channel."""
+function background_channel_flux(energy::EnergyUnit, parameters::NamedTuple, channel;
+                                 reference::EnergyUnit=background_reference_energy)
+    channel == :electron &&
+        return background_flux(energy, parameters.electron; reference)
+    channel == :positron &&
+        return background_flux(energy, parameters.positron; reference)
+    channel == :electron_positron &&
+        return background_flux(energy, parameters.electron; reference) +
+               background_flux(energy, parameters.positron; reference)
+    throw(ArgumentError("Unknown flux channel $channel"))
 end
 
 # ╔═╡ 92fdfccd-5471-591f-b2db-60788043e605
@@ -356,8 +338,9 @@ select_background_data(data, E_min) =
 function background_predictions(coordinates, data, space)
     parameters = decode_background_parameters(coordinates, space)
     return NamedTuple{keys(data)}(Tuple(
-        GeV[convert(GeV, background_flux(E, parameters, channel))
-            for E ∈ data[channel].energy]
+        GeV[convert(GeV, background_channel_flux(E, parameters, channel;
+                                        reference=background_reference_energy))
+                for E ∈ data[channel].energy]
         for channel ∈ keys(data)
     ))
 end
@@ -509,15 +492,19 @@ end
 # ╔═╡ 931453a6-2122-5afc-8b16-04c39b93ce84
 function background_spectrum_band(physical_parameters, covariance, energies, channel)
     parameters = unpack_background_parameters(physical_parameters)
-    central = [background_flux(E, parameters, channel) for E ∈ energies]
+    central = [background_channel_flux(E, parameters, channel;
+                                       reference=background_reference_energy)
+                for E ∈ energies]
     if isnothing(covariance)
         return (central=central, standard_error=nothing, lower=nothing, upper=nothing)
     end
     parameter_values = background_parameter_values(physical_parameters)
     standard_error = map(energies) do E
         gradient = ForwardDiff.gradient(parameter_values) do values
-            parameters = unpack_background_parameters(physical_background_parameters(values))
-            flux_value(background_flux(E, parameters, channel))
+            parameters = unpack_background_parameters(
+                                        physical_background_parameters(values))
+            flux_value(background_channel_flux(E, parameters, channel;
+                                        reference=background_reference_energy))
         end
         sqrt(max(dot(gradient, covariance * gradient), 0.0)) * differential_flux_unit
     end
@@ -824,8 +811,7 @@ isnothing(background_fit_result) ? nothing : background_fit_result.covariance
 # ╟─1955b0f1-b919-518c-8c5b-43e2f7b5a6dc
 # ╟─0ed3e31c-7a52-56d2-98b8-ef905086afe3
 # ╠═41d8f99a-f021-5112-9158-4036bc61660a
-# ╠═3c6ab0db-9a1c-558d-8338-c1eeb71b1d0b
-# ╠═b5ce58d3-1cd3-53dd-9a48-937949dea816
+# ╠═3e1bc7d7-2d87-4a18-8d54-a1abdd58b57e
 # ╟─92fdfccd-5471-591f-b2db-60788043e605
 # ╟─3744a5cc-61e6-4cc5-a2a9-1bac68a9cb63
 # ╠═8f0235b8-7f17-5e00-9941-e93fb48933b2

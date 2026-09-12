@@ -31,6 +31,19 @@ const NU = NaturalUnit(EU)
 ################################################################################
 
 ################################################################################
+export differential_flux_unit
+
+"""
+    differential_flux_unit
+
+One unit of differential flux in GeV⁻¹ m⁻² s⁻¹ sr⁻¹, expressed in the
+canonical [`EU`](@ref) basis. Its natural-unit mass dimension is +2.
+The steradian is dimensionless.
+"""
+const differential_flux_unit = inv(GeV(1.0) * NU.m^2 * NU.s)
+################################################################################
+
+################################################################################
 const α_EM = inv(137.035_999_177)
 
 export unit_charge

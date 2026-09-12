@@ -17,6 +17,7 @@ include("paths.jl")
 include("utils.jl")
 
 # layer 3
+include("background.jl")
 include("data.jl")
 include("flux.jl")
 include("injection_spectra.jl")

@@ -6,8 +6,7 @@
 using QuadGK: quadgk
 
 function numerical_injection_energy_integral(
-    spectrum::InjectionSpectrum_PowerLawWithExponentialCutoff,
-    ;
+    spectrum::InjectionSpectrum_PowerLawWithExponentialCutoff;
     kwargs...,
 )
     gamma = spectrum.index
@@ -57,7 +56,7 @@ end
             (2.4, 10.0, 300.0, 0.75, 2.0),
         )
 
-        for (index, minimum, cutoff, cutoff_index, reference) in cases
+        for (index, minimum, cutoff, cutoff_index, reference) ∈ cases
             spectrum_case = InjectionSpectrum_PowerLawWithExponentialCutoff(
                 index,
                 EU(minimum),
