@@ -2,3 +2,8 @@
 description = "AMS-02 electron, positron and summed fluxes with DAMPE total flux, shown as E^3 J(E)."
 file = "AMS02-DAMPE-data.svg"
 script = "../playgrounds/data-plot.pluto.jl"
+
+["background-prefit-AMS_DAMPE-40GeV.pdf"]
+description = "Background prefit with AMS_DAMPE, E_min=40 GeV: E^3 J(E), local 1-sigma model bands and standardized residuals."
+file = "background-prefit-AMS_DAMPE-40GeV.pdf"
+script = "../playgrounds/background-prefit.pluto.jl"

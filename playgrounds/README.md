@@ -26,7 +26,7 @@ Launch a notebook from an environment in which Pluto is available:
 
 ```sh
 julia -e 'using Pluto; Pluto.run(
-    notebook="playgrounds/background-fit.pluto.jl",
+    notebook="playgrounds/background-prefit.pluto.jl",
 )'
 ```
 
@@ -36,59 +36,79 @@ The notebook can also be opened directly with a Pluto-capable editor.
 
 | Notebook | Purpose |
 | --- | --- |
-| [`background-fit.pluto.jl`](background-fit.pluto.jl) | Jointly prefit the empirical electron and positron backgrounds to AMS-02 and DAMPE flux data. |
+| [`background-prefit.pluto.jl`](background-prefit.pluto.jl) | Jointly prefit the empirical electron and positron backgrounds to AMS-02 and DAMPE flux data. |
 | [`pwn-benchmark.pluto.jl`](pwn-benchmark.pluto.jl) | Compute the present-day $e^-+e^+$ fluxes from Geminga and Monogem under a reproducible one-zone homogeneous-transport benchmark. |
 
 ### Background prefit
 
-`background-fit.pluto.jl` implements the high-energy prefit in
-[`background-prefit.tex`](../../notes/background-prefit.tex).
-`fit_background(; strategy, E_min)` uses all complete bins above the supplied
-lower threshold, through each channel's last published bin. The two strategies
-are `:AMS` (AMS electrons and positrons) and `:AMS_DAMPE` (AMS positrons and the
-DAMPE total flux). Solar modulation is neglected in the current calculations,
-with its impact left for a later estimate.
-
-The single-charge background spectrum and experimental flux-unit conversion
-are provided by `spike_vs_nearby`. The notebook assembles the observed charge
-channels with `background_channel_flux` and retains the fitting workflow for review:
-
-| Notebook section | Responsibility |
-| --- | --- |
-| 1. Units, background spectra and observables | Imported flux API, normalization reference and observed-channel assembly. |
-| 2. Fit settings | Eight parameter names, units, numerical bounds and initial values. |
-| 3. Parameter coordinates | Conversions and explicitly fixed parameters. |
-| 4. Measurements, bin selection and chi-square | Data loading, lower-threshold selection and residuals. |
-| 5. Fit at a fixed lower threshold | Optimization from the common starting points. |
-| 6. Parameter covariance and spectrum uncertainty | Joint covariance and local spectrum error bands. |
-| 7. Parameter table, fitted spectra and residuals | Plot an existing result or supplied parameters. |
-| 8. One-call interface | `fit_background` and its returned results. |
-| 9. Run a specified lower threshold | Configure the strategy and `E_min`, then display the result. |
-
-The configured threshold is `GeV(40)`, with `GeV(50)` available for comparison.
-Each charge has four broken-power-law parameters. The break energies have a
-100 GeV lower search bound and no upper bound. All parameters carry their
-physical units, and the optimizer uses dimensionless coordinates.
+`background-prefit.pluto.jl` implements the high-energy prefit described in
+[`background-prefit.tex`](../../notes/background-prefit.tex), fitting the eight
+broken-power-law parameters with Turing maximum likelihood.
+All complete bins above `E_min` enter the independent Gaussian likelihood,
+with statistical and systematic errors added in quadrature. Solar modulation is
+neglected. The single-charge flux comes from `spike_vs_nearby`.
 
 ```julia
-AMS_fit = fit_background(strategy=:AMS, E_min=GeV(50));
-DAMPE_fit = fit_background(strategy=:AMS_DAMPE, E_min=GeV(50));
-plot_background_fit(AMS_fit)
-plot_background_fit(DAMPE_fit)
+result = fit_background(E_min=GeV(40), strategy=:AMS_DAMPE);
+result.parameter_table
+result.covariance
+result.figure
+plot_background_fit(result; bands=false) # Reuse the stored result, without refitting.
 ```
 
-The results include chi-square summaries, fitted parameters, a joint covariance,
-and a figure with spectra and standardized residuals. The optional spectrum
-bands are pointwise local 1σ bands. Covariance rows and columns follow the
-returned parameter order and units. A rank-deficient fit has no full covariance
-estimate. The full-data comparison is in `data-plot.pluto.jl`.
+The notebook saves the configured fit figure as
+`plots/background-prefit-<strategy>-<E_min>GeV.pdf` and records its source notebook
+in `plots/PlotRegistry.toml`.
 
-The tests load definitions up to the `# Run configured analyses.` marker without
-running the editable example. From the package root:
+`:AMS_DAMPE` uses AMS positrons and DAMPE total flux. `:AMS` uses the separate
+AMS electron and positron spectra. The configured threshold is `GeV(40)`.
 
-```sh
-julia --startup-file=no --project=playgrounds playgrounds/test_background_prefitting.jl
-```
+The notebook has four parts: physical model and units, data and parameter domains,
+maximum likelihood and prediction uncertainties, and plotting. All eight parameters
+are free. The distributions in `background_parameter_domains(data)` define the
+allowed ranges and Turing's coordinate transformations. Their densities do not
+enter maximum likelihood. Normalizations and index changes are positive, and
+the spectral indices are real.
+
+Both break-energy lower limits are 100 GeV. The electron upper limit is the last
+AMS electron bin edge (1400 GeV) for `:AMS`, or the last DAMPE bin edge
+(4570.9 GeV) for `:AMS_DAMPE`. The positron upper limit is always the last AMS
+positron bin edge (1000 GeV). `result.domains` records these distributions.
+
+Four explicit starting tuples are tried with Turing's L-BFGS backend and a scaled
+initial line-search step. The converged run with the lowest chi-square is retained.
+If no run converges, the best finite result is returned with `converged=false`.
+`result.runs`, `best_run_index`, `termination_reason`, and the native `raw_fit`
+retain the numerical results. The default iteration limit is 3000 and can be set
+with `fit_background(E_min=GeV(50), solver_options=(maxiters=5000,))`.
+
+`parameters` contains the best-fit physical values. The curves and residuals use
+these values. The result reports total `χ²` and per-channel `channel_χ²`, with
+`dof = npoints - nfree` and `reduced_χ² = χ² / dof`.
+The free-parameter count `nfree` is derived from the parameter metadata.
+Turing's `vcov` supplies the inverse full Hessian of the negative log likelihood
+in the original numerical parameters, without rescaling by reduced chi-square.
+The returned `covariance` follows `parameter_names`, in products of `parameter_units`.
+
+`Measurements.correlated_values` constructs the eight correlated parameters from
+this matrix. Evaluating the existing physical flux functions propagates their
+uncertainties, including correlations between the charge contributions.
+`parameter_table` shows local standard errors and the plots show pointwise ±1σ
+model bands, without added measurement noise. These are local linear error
+estimates. `covariance_status` records whether they are usable. An unconverged fit,
+an active parameter bound, or an unusable covariance suppresses the errors and bands.
+The residual panel shows `(data - fit) / data_error`, with the model error band
+centred at zero in the same units. Plotting reuses the stored `spectra` and `residuals`.
+On the logarithmic flux panel, band segments with nonpositive lower edges are
+omitted. The numerical errors and the residual panel retain the full local errors.
+
+The full-data preview remains in `data-plot.pluto.jl`. The inference stack is
+confined to the playground environment. The implementation has no separate
+fixed-parameter or generic fitting framework.
+
+The final AMS-only diagnostic at `GeV(40)` compares electron index-change upper
+bounds of 8, 16, and 32. It displays the fitted index change, break energy,
+chi-square, bound activity, and convergence in a summary table.
 
 ### PWN benchmark
 
